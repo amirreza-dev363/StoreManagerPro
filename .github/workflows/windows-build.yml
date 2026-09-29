@@ -1,0 +1,31 @@
+name: Windows Build
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install PyInstaller
+        run: python -m pip install --upgrade pip pyinstaller
+      - name: Build EXE
+        run: python -m PyInstaller --noconfirm --clean --onefile --windowed --name StoreManagerPro app.py
+      - name: Install Inno Setup
+        run: choco install innosetup -y --no-progress
+      - name: Build installer
+        shell: cmd
+        run: iscc installer\StoreManagerPro_Setup.iss
+      - uses: actions/upload-artifact@v4
+        with:
+          name: StoreManagerPro-Windows
+          path: |
+            dist/StoreManagerPro.exe
+            dist-installer/StoreManagerPro_Setup.exe
